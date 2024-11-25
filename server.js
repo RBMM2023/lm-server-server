@@ -380,5 +380,5 @@ cron.schedule('0 0 * * *', () => {
 // Start the server
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
-  console.log(`Server running on http://localhost:${PORT}`);
+  console.log(`Server running on https://lm-server-server.onrender.com/`);
 });
