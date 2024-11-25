@@ -219,7 +219,7 @@ app.get('/', (req, res) => {
 });
 
 // Login endpoint
-app.post('https://lm-server-server.onrender.com//api/login', (req, res) => {
+app.post('/api/login', (req, res) => {
   const { email, password } = req.body;
 
   // Check if user credentials match .env values
@@ -237,99 +237,92 @@ app.post('https://lm-server-server.onrender.com//api/login', (req, res) => {
 });
 
 // Calendar data endpoint with pagination (fetching in batches)
-app.get(
-  'https://lm-server-server.onrender.com//api/calendar',
-  async (req, res) => {
-    try {
-      let allData = [];
-      let start = 0;
-      const batchSize = 1000; // Number of rows to fetch per batch
-      let batch;
+app.get('/api/calendar', async (req, res) => {
+  try {
+    let allData = [];
+    let start = 0;
+    const batchSize = 1000; // Number of rows to fetch per batch
+    let batch;
 
-      // Continue fetching data in batches until no more rows are returned
-      do {
-        const { data, error } = await supabase
-          .from('booking_calendar')
-          .select('*')
-          .range(start, start + batchSize - 1); // Fetch rows from 'start' to 'start + batchSize - 1'
-
-        if (error) {
-          console.error('Error fetching calendar data:', error);
-          return res.status(500).json({ error: error.message });
-        }
-
-        batch = data;
-        allData = allData.concat(batch); // Append the batch to the full data array
-        start += batchSize; // Move to the next batch
-      } while (batch.length === batchSize); // Stop if the batch is smaller than batchSize
-
-      res.json(allData);
-    } catch (error) {
-      console.error('Error processing request:', error);
-      res.status(500).json({ error: error.message });
-    }
-  }
-);
-
-// Booking endpoint with JWT verification (only the fishery owner can book)
-app.post(
-  'https://lm-server-server.onrender.com//api/calendar/book',
-  authMiddleware,
-  async (req, res) => {
-    const { date, peg } = req.body;
-
-    if (!date || !peg) {
-      return res.status(400).json({ error: 'Date and peg are required' });
-    }
-
-    try {
-      // Check if the peg is already booked for the requested date
-      const { data: existingBookings, error: checkError } = await supabase
+    // Continue fetching data in batches until no more rows are returned
+    do {
+      const { data, error } = await supabase
         .from('booking_calendar')
         .select('*')
-        .eq('date', date)
-        .eq('peg', peg);
+        .range(start, start + batchSize - 1); // Fetch rows from 'start' to 'start + batchSize - 1'
 
-      if (checkError) {
-        console.error('Error checking existing booking:', checkError);
-        return res.status(500).json({ error: checkError.message });
+      if (error) {
+        console.error('Error fetching calendar data:', error);
+        return res.status(500).json({ error: error.message });
       }
 
-      // If an existing booking is found
-      if (existingBookings.length > 0) {
-        const currentBooking = existingBookings[0];
-        const newStatus =
-          currentBooking.status === 'booked' ? 'available' : 'booked';
+      batch = data;
+      allData = allData.concat(batch); // Append the batch to the full data array
+      start += batchSize; // Move to the next batch
+    } while (batch.length === batchSize); // Stop if the batch is smaller than batchSize
 
-        // Update booking status for the correct row
-        const { error: updateError } = await supabase
-          .from('booking_calendar')
-          .update({ status: newStatus })
-          .eq('id', currentBooking.id);
-
-        if (updateError) {
-          console.error('Error updating booking:', updateError);
-          return res.status(500).json({ error: updateError.message });
-        }
-        return res.json({ message: `Booking status updated to ${newStatus}` });
-      } else {
-        // If no booking exists, create a new one
-        const { error: insertError } = await supabase
-          .from('booking_calendar')
-          .insert([{ date, peg, status: 'booked' }]);
-
-        if (insertError) {
-          console.error('Error inserting booking:', insertError);
-          return res.status(500).json({ error: insertError.message });
-        }
-        return res.json({ message: 'Booking created successfully' });
-      }
-    } catch (error) {
-      console.error('Error processing booking:', error);
-      return res.status(500).json({ error: error.message });
-    }
+    res.json(allData);
+  } catch (error) {
+    console.error('Error processing request:', error);
+    res.status(500).json({ error: error.message });
   }
-);
+});
+
+// Booking endpoint with JWT verification (only the fishery owner can book)
+app.post('/api/calendar/book', authMiddleware, async (req, res) => {
+  const { date, peg } = req.body;
+
+  if (!date || !peg) {
+    return res.status(400).json({ error: 'Date and peg are required' });
+  }
+
+  try {
+    // Check if the peg is already booked for the requested date
+    const { data: existingBookings, error: checkError } = await supabase
+      .from('booking_calendar')
+      .select('*')
+      .eq('date', date)
+      .eq('peg', peg);
+
+    if (checkError) {
+      console.error('Error checking existing booking:', checkError);
+      return res.status(500).json({ error: checkError.message });
+    }
+
+    // If an existing booking is found
+    if (existingBookings.length > 0) {
+      const currentBooking = existingBookings[0];
+      const newStatus =
+        currentBooking.status === 'booked' ? 'available' : 'booked';
+
+      // Update booking status for the correct row
+      const { error: updateError } = await supabase
+        .from('booking_calendar')
+        .update({ status: newStatus })
+        .eq('id', currentBooking.id);
+
+      if (updateError) {
+        console.error('Error updating booking:', updateError);
+        return res.status(500).json({ error: updateError.message });
+      }
+      return res.json({ message: `Booking status updated to ${newStatus}` });
+    } else {
+      // If no booking exists, create a new one
+      const { error: insertError } = await supabase
+        .from('booking_calendar')
+        .insert([{ date, peg, status: 'booked' }]);
+
+      if (insertError) {
+        console.error('Error inserting booking:', insertError);
+        return res.status(500).json({ error: insertError.message });
+      }
+      return res.json({ message: 'Booking created successfully' });
+    }
+  } catch (error) {
+    console.error('Error processing booking:', error);
+    return res.status(500).json({ error: error.message });
+  }
+});
 
 // Function to clear past bookings daily at midnight
 async function clearPastBookings() {
