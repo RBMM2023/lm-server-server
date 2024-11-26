@@ -205,7 +205,7 @@ const app = express();
 app.use(express.json());
 app.use(
   cors({
-    origin: 'https://rbmm2023.github.io', // Correct client URL
+    origin: 'https://rbmm2023.github.io/lm-server-client/', // Correct client URL
   })
 );
 
