@@ -206,6 +206,7 @@ app.use(express.json());
 app.use(
   cors({
     origin: 'https://rbmm2023.github.io', // Correct client URL
+    credentials: true,
   })
 );
 
