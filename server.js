@@ -205,7 +205,7 @@ const app = express();
 app.use(express.json());
 app.use(
   cors({
-    origin: 'https://rbmm2023.github.io', // Correct client URL
+    origin: /*'https://rbmm2023.github.io'*/ 'http://localhost:3000', // Correct client URL
     credentials: true,
   })
 );
@@ -378,8 +378,8 @@ cron.schedule('0 0 * * *', () => {
   clearPastBookings();
 });
 
-// Start the server
+/* Start the server
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
   console.log(`Server running on https://lm-server-server.onrender.com/`);
-});
+});*/
