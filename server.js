@@ -206,7 +206,7 @@ app.use(express.json());
 app.use(
   cors({
     //'https://rbmm2023.github.io',
-    origin: 'http://localhost:3000/contactUs', // Correct client URL
+    origin: 'http://localhost:3000', // Correct client URL
     credentials: true,
   })
 );
