@@ -205,7 +205,8 @@ const app = express();
 app.use(express.json());
 app.use(
   cors({
-    origin: 'https://rbmm2023.github.io', // Correct client URL
+    //'https://rbmm2023.github.io',
+    origin: 'http://localhost:3000/contactUs', // Correct client URL
     credentials: true,
   })
 );
